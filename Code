@@ -55,3 +55,4 @@ call_delta = e**(-div*t) * norm.cdf(d1)  #CORRECT
 call_theta = 1/T * (-(S_0* v * e**(-(div*t)) / (2 * sqrt(t)) * 1/(sqrt(2 * pi)) * e**((-(d1)**2)/2))
                       - (r * X * e**(-(r*t)) * norm.cdf(d2)) + div * S_0 * e**(-(div*t)) * norm.cdf(d1)) #CORRECT
 Gamma = e**(-(div*t)) / (S_0 * v * sqrt(t)) * (1/(sqrt(2*pi))) * e**((-(d1)**2)/2) #CORRECT
+Vega = 1/100.0 * (S_0 * e**(-(div*t)) * sqrt(t)) * (1 / (sqrt(2 * pi))) * e**((-(d1)**2)/2) #CORRECT
