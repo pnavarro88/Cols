@@ -32,20 +32,22 @@ options
 
 #S_0 = underlying price (USD per share)
 #X = strike price (USD per share)
-#v = volatility (% p.a.)
-#r = continuously compounded risk-free interest rate (% p.a.)
-#div = continuously compounded dividend yield (% p.a.)
+#v = volatility (% in fraction)
+#r = continuously compounded risk-free interest rate (% in fraction)
+#div = continuously compounded dividend yield (% in fraction)
 #N = where N(x) is the standard normal cumulative distribution function.
-#t = time to expiration (% of year)
+#t = time to expiration (in x/365 formula) so basically as a fraction
+#x = is number of days to exp. that will be used in function to get t
+#T = Total calendar days in 1 year
 
-x = 266 # number of days to exp.
-r = 0.05
+x = 266 
 v = 0.39
 div = 0.0
 t = x/365.0
 S_0 = 107.87
 X = 105.0
-T = 365.0 #Total days in a year
+T = 365.0 
+pi = math.pi
 
 d1 = (log(S_0/X) + t * (r - div + (v**2)/2)) / (v * sqrt(t)) #CORRECT
 d2 = (d1 - v * sqrt(t)) #CORRECT
