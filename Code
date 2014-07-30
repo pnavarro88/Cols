@@ -8,29 +8,70 @@ import numpy as np
 from math import log, e
 from scipy.stats import norm 
 
-# here we delete the columns we dont need. We set that index to dates and parse dates
-#options = pd.read_excel('Options_Test.xlsx', 'Hoja1', index_col='Date[L]', parse_date=True)
-options = pd.read_excel('Options_Test.xlsx', 'Hoja1', parse_date=True)
-#del options['EX']
-del options['Open Interest']
-del options['Settle']
-#del options['Data']
-#del options['Source']
-del options['Time[L]']
-del options['Type']
-del options['Qualifiers']
-options['Days_to_Exp'] = (options.Exp_Date - options.Date)
-options.head()
+def calculate_Call_Delta(div, t, d1):
+    Call_Delta = e**(-div*t) * norm.cdf(d1)
+    return Delta
+
+def calculate_Call_Theta(T, S_0, v, div, t, d1, r, X, d2):
+    Call_Theta = 1/T * (-(S_0* v * e**(-(div*t)) / (2 * sqrt(t)) * 1/(sqrt(2 * pi)) * e**((-(d1)**2)/2))
+                      - (r * X * e**(-(r*t)) * norm.cdf(d2)) + div * S_0 * e**(-(div*t)) * norm.cdf(d1))
+    return Call_Theta
+
+def calculate_Gamma(div, t, S_0, v, d1):
+    Gamma = (e**(-div*t)) / (S_0 * v * sqrt(t)) * (1/(sqrt(2*pi))) * e**((-(d1)**2)/2) 
+    return Gamma
+
+def calculate_Vega(S_0, div, t, d1):
+    Vega = 1/100.0 * (S_0 * e**(-(div*t)) * sqrt(t)) * (1 / (sqrt(2 * pi))) * e**((-(d1)**2)/2) 
+    return Vega
+
+def calculate_Rho(X, t, r, d2):
+    Rho = (1/100.0) * (X * t *math.e**(-(r*t))) * (norm.cdf(d2))
+    return Rho
+
+def calculate_d1(S_0, X, t, r, div, v):
+    d1 = (log(S_0/X) + t * (r - div + (v**2)/2)) / (v * sqrt(t))
+    return d1
+
+def calculate_d2(d1, v, t):
+    d2 = (d1 - v * sqrt(t))
+    return d2
+
+def load_excel_file(filename, tabname):
+    data = pd.read_excel(filename, tabname, parse_date=True)
+
+    return data
+    
+data = load_excel_file('Options_Test.xlsx', 'Hoja1')
+data.head()    
+
+def clean_data(data_file):
+    to_delete = [
+        #"EX"
+        "Open Interest",
+        "Settle",
+        #"Data",
+        #"Source",
+        "Time[L]",
+        "Type",
+        "Qualifiers"]
+
+    for key in to_delete:
+        del data[key]
+clean_data(data)
+
+for key in data.RIC.keys():
+    data.RIC[key] = data.RIC[key].replace('.','')
+    
+    
+data['Days_to_Exp'] = (data.Exp_Date - data.Date)
+data = data.dropna()
+data = data.sort('Date')
+data.head()
 
 
-#We need to drop the NaN to make sure we get the rows that contain important data. Since all the data from reuters comes w/
-#all 24 hours of data. Or in case of EOD it has 7 days.
 
-options = options.dropna()
-options = options.sort('Date')
-options
-
-""" Angela skip esto
+""" notas para pablo
 #S_0 = underlying price (USD per share)
 #X = strike price (USD per share)
 #v = volatility (% in fraction)
@@ -40,61 +81,4 @@ options
 #t = time to expiration (in x/365 formula) so basically as a fraction
 #x = is number of days to exp. that will be used in function to get t
 #T = Total calendar days in 1 year
-
-x = 266 
-v = 0.39
-div = 0.0
-t = x/365.0
-S_0 = 107.87
-X = 105.0
-T = 365.0 
-pi = math.pi
-
-d1 = (log(S_0/X) + t * (r - div + (v**2)/2)) / (v * sqrt(t)) #CORRECT
-d2 = (d1 - v * sqrt(t)) #CORRECT
-call_delta = e**(-div*t) * norm.cdf(d1)  #CORRECT
-call_theta = 1/T * (-(S_0* v * e**(-(div*t)) / (2 * sqrt(t)) * 1/(sqrt(2 * pi)) * e**((-(d1)**2)/2))
-                      - (r * X * e**(-(r*t)) * norm.cdf(d2)) + div * S_0 * e**(-(div*t)) * norm.cdf(d1)) #CORRECT
-Gamma = e**(-(div*t)) / (S_0 * v * sqrt(t)) * (1/(sqrt(2*pi))) * e**((-(d1)**2)/2) #CORRECT
-Vega = 1/100.0 * (S_0 * e**(-(div*t)) * sqrt(t)) * (1 / (sqrt(2 * pi))) * e**((-(d1)**2)/2) #CORRECT
-Rho = (1/100.0) * (X * t * e**(-(r*t))) * (norm.cdf(d2)) #CORRECT
-
-#S_0 = Last
-#X = aca hay un problema pero con q me diga como funcinan los demas despues yo lo cambio. pero dejemoslo como una constante(300)
-#v = una cosntante ex 0.40
-#r = constante (0.025)
-#div = en este ejemplo - pero puede cambiar tiene su columna
-#N = esta es el norm.cdf(d1 0 d2)
-#t = es el numero de dias q faltan q esta en options.Days_to_Exp
 """
-
-""" Angela esta es la descrip + lo q falta de code
-r = 0.1 #this needs to be either a constant or we need to add a source this data from
-v = 0.1 # still need to get the formula for implied vol.
-div = 0.1 #need to add a column for it to check what the div. is
-T = 365.0 # number of days per year (could be calendar days or business days depends what u want to use)
-t = 1.0 
-S_0 = 10.0 
-X = 10.0
-pi = math.pi
-"""
-
-x = 266 # number of days to exp.
-r = 0.05
-v = 0.39
-div = 0.0
-t = x/365.0
-S_0 = 107.87
-X = 90.0
-pi = math.pi
-T = 365.0
-
-d1 = (log(S_0/X) + t * (r - div + (v**2)/2)) / (v * sqrt(t)) #CORRECT
-d2 = (d1 - v * sqrt(t)) #CORRECT
-
-call_delta = e**(-div*t) * norm.cdf(d1)  #CORRECT
-call_theta = 1/T * (-(S_0* v * e**(-(div*t)) / (2 * sqrt(t)) * 1/(sqrt(2 * pi)) * e**((-(d1)**2)/2))
-                      - (r * X * e**(-(r*t)) * norm.cdf(d2)) + div * S_0 * e**(-(div*t)) * norm.cdf(d1)) #CORRECT
-Gamma = (e**(-div*t)) / (S_0 * v * sqrt(t)) * (1/(sqrt(2*pi))) * e**((-(d1)**2)/2) #CORRECT
-Vega = 1/100.0 * (S_0 * e**(-(div*t)) * sqrt(t)) * (1 / (sqrt(2 * pi))) * e**((-(d1)**2)/2) #CORRECT
-Rho = (1/100.0) * (X * t * e**(-(r*t))) * (norm.cdf(d2)) #CORRECT
